@@ -17,7 +17,7 @@
 
   <!-- Chat Area -->
   <main class="flex-grow overflow-y-auto p-4">
-    <div id="chatContainer" class="max-w-2xl mx-auto space-y-4"></div>
+    <div id="chatContainer" class="max-w-2xl mx-auto space-y-4 flex flex-col"></div>
   </main>
 
   <!-- Input Form -->
@@ -26,7 +26,7 @@
       <input id="chatInput" type="text" required placeholder="Tulis pertanyaanmu..."
         class="flex-grow px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
       <button type="submit"
-        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Kirim</button>
+        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Kirim</button>
     </form>
   </footer>
 
@@ -38,8 +38,9 @@
 
     function addMessage(sender, text) {
       const msg = document.createElement("div");
-      msg.className = `p-3 rounded-lg max-w-[80%] whitespace-pre-line shadow
-        ${sender === "user" ? "bg-blue-100 self-end ml-auto text-right" : "bg-gray-200 self-start text-left"}`;
+      msg.className = `p-3 rounded-lg max-w-[80%] whitespace-pre-line shadow ${
+        sender === "user" ? "bg-blue-100 self-end ml-auto text-right" : "bg-gray-200 self-start text-left"
+      }`;
       msg.innerHTML = `<strong>${sender === "user" ? "Anda" : "AI Tutor"}:</strong><br>${text}`;
       chatContainer.appendChild(msg);
       chatContainer.scrollTop = chatContainer.scrollHeight;
@@ -47,7 +48,11 @@
 
     async function fetchChatGPTReply(message) {
       const endpoint = "https://api.openai.com/v1/chat/completions";
-      const apiKey = "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"; // Ganti dengan API key kamu
+      const apiKey = "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"; // 🔐 Ganti dengan API Key Anda
+      if (apiKey.includes("sk-") === false) {
+        alert("API Key OpenAI belum dimasukkan di chatbot.js");
+        return "Tidak dapat memproses permintaan.";
+      }
 
       const response = await fetch(endpoint, {
         method: "POST",
@@ -58,20 +63,22 @@
         body: JSON.stringify({
           model: "gpt-3.5-turbo",
           messages: [
-            { role: "system", content: "Kamu adalah asisten AI untuk siswa PKBM Celah Cahaya. Jawab dengan bahasa yang sopan, ramah, dan mudah dimengerti." },
-            { role: "user", content: message }
+            {
+              role: "system",
+              content: "Kamu adalah tutor AI ramah untuk siswa PKBM Celah Cahaya. Jawablah dengan bahasa sopan dan mudah dipahami."
+            },
+            {
+              role: "user",
+              content: message
+            }
           ],
-          max_tokens: 1000,
-          temperature: 0.7
+          temperature: 0.7,
+          max_tokens: 1000
         })
       });
 
       const data = await response.json();
-      if (data.choices && data.choices.length > 0) {
-        return data.choices[0].message.content;
-      } else {
-        throw new Error("Gagal mendapatkan respons dari ChatGPT.");
-      }
+      return data.choices?.[0]?.message?.content || "Maaf, tidak ada respons dari AI.";
     }
 
     chatForm.addEventListener("submit", async (e) => {
@@ -81,16 +88,16 @@
 
       addMessage("user", userMessage);
       chatInput.value = "";
-      addMessage("ai", "⏳ Sedang menulis...");
+      addMessage("ai", "⏳ Mengetik...");
 
       try {
         const aiReply = await fetchChatGPTReply(userMessage);
-        chatContainer.lastChild.remove(); // Hapus "Sedang menulis..."
-        addMessage("ai", aiReply);
-      } catch (err) {
         chatContainer.lastChild.remove();
-        addMessage("ai", "❌ Maaf, terjadi kesalahan saat menghubungi AI.");
-        console.error(err);
+        addMessage("ai", aiReply);
+      } catch (error) {
+        chatContainer.lastChild.remove();
+        addMessage("ai", "❌ Terjadi kesalahan saat menghubungi AI.");
+        console.error(error);
       }
     });
   </script>
