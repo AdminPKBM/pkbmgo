@@ -1,8 +1,8 @@
 // assets/script.js
 
 // GANTI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA
-const SPREADSHEET_URL_GET = 'YOUR_APPS_SCRIPT_URL_FOR_GET_REQUESTS';
-const SPREADSHEET_URL_POST = 'YOUR_APPS_SCRIPT_URL_FOR_POST_REQUESTS';
+const SPREADSHEET_URL_GET = 'https://script.google.com/macros/s/AKfycbz1y-CN1FzNtd2ZrdO28mKKi2kcKpyGBC2jZaRqZJ31oqN2Het7cpSnvyE8HENAEtEF/exec';
+const SPREADSHEET_URL_POST = 'https://script.google.com/macros/s/AKfycbz1y-CN1FzNtd2ZrdO28mKKi2kcKpyGBC2jZaRqZJ31oqN2Het7cpSnvyE8HENAEtEF/exec';
 
 /**
  * Cek apakah pengguna sudah login. Jika tidak, redirect ke halaman login.
