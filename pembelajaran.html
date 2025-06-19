@@ -1,1 +1,37 @@
-
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Materi Pembelajaran</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+    <div id="app-container">
+        <nav class="sidebar"></nav>
+        <main class="content">
+            <div class="header">
+                <h1>Materi Pembelajaran</h1>
+                <p>Pilih materi untuk mulai belajar.</p>
+            </div>
+            <div class="card">
+                <h3>Matematika</h3>
+                <p>Materi tentang aljabar, geometri, dan kalkulus.</p>
+                <a href="#" class="btn" style="width: auto; margin-top: 10px;">Mulai Belajar</a>
+            </div>
+             <div class="card">
+                <h3>Bahasa Indonesia</h3>
+                <p>Materi tentang tata bahasa, sastra, dan penulisan.</p>
+                <a href="#" class="btn" style="width: auto; margin-top: 10px;">Mulai Belajar</a>
+            </div>
+        </main>
+    </div>
+    <script src="assets/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            checkLogin();
+            renderSidebar('pembelajaran');
+        });
+    </script>
+</body>
+</html>
