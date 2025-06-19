@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Absensi</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+    <div id="app-container">
+        <nav class="sidebar"></nav>
+        <main class="content">
+            <div class="header">
+                <h1>Absensi Kehadiran</h1>
+                <p>Catat kehadiran Anda hari ini.</p>
+            </div>
+            <div class="card">
+                <button id="absen-btn" class="btn">Lakukan Absensi Sekarang</button>
+            </div>
+            <div class="card">
+                <h3>Riwayat Absensi</h3>
+                <div id="riwayat-absensi">Memuat data...</div>
+            </div>
+        </main>
+    </div>
+    <script src="assets/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            checkLogin();
+            renderSidebar('absensi');
+
+            // Handle Klik Absen
+            document.getElementById('absen-btn').addEventListener('click', () => {
+                const user = getUser();
+                const dataAbsen = {
+                    nama: user.name,
+                    waktu: new Date().toISOString(),
+                    status: 'Hadir'
+                };
+                // Ganti 'absensi' dengan nama sheet Anda
+                postDataToSheet('absensi', dataAbsen)
+                    .then(res => {
+                        alert('Absensi berhasil dicatat!');
+                        loadRiwayat(); // Muat ulang riwayat
+                    });
+            });
+
+            // Muat Riwayat Awal
+            async function loadRiwayat() {
+                const container = document.getElementById('riwayat-absensi');
+                // Ganti 'absensi' dengan nama sheet Anda
+                const data = await fetchDataFromSheet('absensi');
+                if (data) {
+                    let table = '<table><thead><tr><th>Nama</th><th>Waktu</th><th>Status</th></tr></thead><tbody>';
+                    data.forEach(row => {
+                       table += `<tr><td>${row.nama}</td><td>${row.waktu}</td><td>${row.status}</td></tr>`;
+                    });
+                    table += '</tbody></table>';
+                    container.innerHTML = table;
+                } else {
+                    container.innerHTML = 'Gagal memuat riwayat.';
+                }
+            }
+            loadRiwayat();
+        });
+    </script>
+</body>
+</html>
