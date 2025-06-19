@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tugas</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+    <div id="app-container">
+        <nav class="sidebar"></nav>
+        <main class="content">
+            <div class="header">
+                <h1>Daftar Tugas</h1>
+                <p>Kumpulkan tugas Anda sebelum tenggat waktu.</p>
+            </div>
+            <div class="card">
+                <h3>Tugas Matematika Bab 1</h3>
+                <p>Tenggat: 25 Juni 2025</p>
+                <form id="tugas-form" style="margin-top: 15px;">
+                    <div class="form-group">
+                        <label for="file-upload">Upload File Jawaban</label>
+                        <input type="file" id="file-upload">
+                    </div>
+                    <button type="submit" class="btn">Kirim Tugas</button>
+                </form>
+            </div>
+        </main>
+    </div>
+    <script src="assets/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            checkLogin();
+            renderSidebar('tugas');
+
+            document.getElementById('tugas-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const user = getUser();
+                const dataToPost = {
+                    nama: user.name,
+                    tugas: 'Matematika Bab 1',
+                    waktu_kirim: new Date().toISOString()
+                };
+                // Ganti 'tugas' dengan nama sheet Anda di Google Sheets
+                postDataToSheet('tugas', dataToPost)
+                  .then(response => {
+                      if (response.status === 'success') {
+                          alert('Tugas berhasil dikirim!');
+                      }
+                  });
+            });
+        });
+    </script>
+</body>
+</html>
