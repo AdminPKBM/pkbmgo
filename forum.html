@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Forum Diskusi | PKBM Celah Cahaya</title>
   <link rel="icon" href="favicon.ico" />
   <script src="https://cdn.tailwindcss.com"></script>
@@ -10,33 +10,25 @@
 <body class="bg-gray-100 min-h-screen flex flex-col">
 
   <!-- Header -->
-  <header class="bg-blue-600 text-white p-4 shadow text-center">
+  <header class="bg-green-600 text-white p-4 shadow text-center">
     <h1 class="text-xl font-bold">💬 Forum Warga Belajar</h1>
-    <p class="text-sm">Diskusi seputar pelajaran & tugas</p>
+    <p class="text-sm">Diskusi ala Chat</p>
   </header>
 
-  <!-- Forum Container -->
-  <main class="flex-grow p-6">
-    <div class="max-w-2xl mx-auto bg-white p-4 rounded shadow">
-
-      <!-- Form Post -->
-      <form id="postForm" class="mb-6">
-        <textarea id="postContent" required rows="3" placeholder="Tulis pertanyaan atau diskusi..."
-          class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"></textarea>
-        <button type="submit"
-          class="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Kirim</button>
-      </form>
-
-      <!-- Container Postingan -->
-      <div id="forumContainer" class="space-y-4 text-sm">
-        <!-- Postingan akan ditambahkan via JS -->
-      </div>
-
+  <!-- Chat Container -->
+  <main class="flex-grow p-4 overflow-auto">
+    <div id="chatContainer" class="max-w-2xl mx-auto space-y-3">
+      <!-- Pesan akan ditambahkan via JS -->
     </div>
   </main>
 
-  <footer class="text-center text-xs text-gray-500 py-4">
-    © 2025 PKBM Celah Cahaya
+  <!-- Input Pesan -->
+  <footer class="bg-white p-4 shadow-md">
+    <form id="chatForm" class="max-w-2xl mx-auto flex gap-2">
+      <input id="chatInput" type="text" placeholder="Ketik pesan..." required
+        class="flex-grow px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400" />
+      <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">Kirim</button>
+    </form>
   </footer>
 
   <!-- Firebase SDK -->
@@ -44,7 +36,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
 
-  <!-- Script Forum -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyDRjHZHXEtMJs3RY4FWc3m6iBtfp5x24iU",
@@ -59,9 +50,9 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    const forumContainer = document.getElementById("forumContainer");
-    const postForm = document.getElementById("postForm");
-    const postContent = document.getElementById("postContent");
+    const chatContainer = document.getElementById("chatContainer");
+    const chatForm = document.getElementById("chatForm");
+    const chatInput = document.getElementById("chatInput");
 
     auth.onAuthStateChanged(user => {
       if (!user) {
@@ -69,42 +60,46 @@
         return;
       }
 
-      // Submit postingan
-      postForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const content = postContent.value.trim();
-        if (!content) return;
+      const uid = user.uid;
 
-        const userDoc = await db.collection("users").doc(user.uid).get();
-        const nama = userDoc.exists ? userDoc.data().nama : "Anonim";
+      db.collection("users").doc(uid).get().then(doc => {
+        const nama = doc.exists ? doc.data().nama : "Anonim";
 
-        await db.collection("forum").add({
-          uid: user.uid,
-          nama: nama,
-          isi: content,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        chatForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const pesan = chatInput.value.trim();
+          if (!pesan) return;
+
+          await db.collection("forumChat").add({
+            uid,
+            nama,
+            pesan,
+            waktu: firebase.firestore.FieldValue.serverTimestamp()
+          });
+
+          chatInput.value = "";
         });
 
-        postContent.value = "";
-      });
+        db.collection("forumChat").orderBy("waktu", "asc")
+          .onSnapshot(snapshot => {
+            chatContainer.innerHTML = "";
+            snapshot.forEach(doc => {
+              const data = doc.data();
+              const isSender = data.uid === uid;
+              const bubble = document.createElement("div");
 
-      // Load postingan real-time
-      db.collection("forum").orderBy("timestamp", "desc").onSnapshot(snapshot => {
-        forumContainer.innerHTML = "";
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          const waktu = data.timestamp?.toDate().toLocaleString("id-ID") || "-";
-
-          const postDiv = document.createElement("div");
-          postDiv.className = "bg-gray-100 p-3 rounded shadow";
-
-          postDiv.innerHTML = `
-            <div class="text-sm text-gray-800 font-semibold">${data.nama}</div>
-            <div class="text-gray-700 mt-1 whitespace-pre-line">${data.isi}</div>
-            <div class="text-xs text-gray-400 mt-2">${waktu}</div>
-          `;
-          forumContainer.appendChild(postDiv);
-        });
+              bubble.className = `max-w-[75%] p-3 rounded-lg shadow text-sm ${
+                isSender ? "bg-green-100 ml-auto text-right" : "bg-white text-left"
+              }`;
+              bubble.innerHTML = `
+                <div class="font-semibold text-green-800">${data.nama}</div>
+                <div>${data.pesan}</div>
+                <div class="text-xs text-gray-400 mt-1">${data.waktu ? data.waktu.toDate().toLocaleTimeString("id-ID") : ""}</div>
+              `;
+              chatContainer.appendChild(bubble);
+              chatContainer.scrollTop = chatContainer.scrollHeight;
+            });
+          });
       });
     });
   </script>
