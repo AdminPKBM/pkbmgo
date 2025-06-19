@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+    <div id="app-container">
+        <nav class="sidebar"></nav>
+        <main class="content">
+            <div class="header">
+                <h1 id="welcome-message"></h1>
+                <p>Selamat datang kembali! Ini ringkasan aktivitas Anda.</p>
+            </div>
+            <div class="card">
+                <h3>Ringkasan Cepat</h3>
+                <p>Informasi ringkasan seperti tugas yang akan datang atau pengumuman bisa ditampilkan di sini.</p>
+            </div>
+        </main>
+    </div>
+    <script src="assets/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            checkLogin();
+            renderSidebar('dashboard');
+            
+            const user = getUser();
+            if (user) {
+                document.getElementById('welcome-message').textContent = `Halo, ${user.name}!`;
+            }
+        });
+    </script>
+</body>
+</html>
