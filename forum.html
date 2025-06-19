@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Forum Diskusi | PKBM Celah Cahaya</title>
+  <link rel="icon" href="favicon.ico" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-blue-600 text-white p-4 shadow text-center">
+    <h1 class="text-xl font-bold">💬 Forum Warga Belajar</h1>
+    <p class="text-sm">Diskusi seputar pelajaran & tugas</p>
+  </header>
+
+  <!-- Forum Container -->
+  <main class="flex-grow p-6">
+    <div class="max-w-2xl mx-auto bg-white p-4 rounded shadow">
+
+      <!-- Form Post -->
+      <form id="postForm" class="mb-6">
+        <textarea id="postContent" required rows="3" placeholder="Tulis pertanyaan atau diskusi..."
+          class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"></textarea>
+        <button type="submit"
+          class="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Kirim</button>
+      </form>
+
+      <!-- Container Postingan -->
+      <div id="forumContainer" class="space-y-4 text-sm">
+        <!-- Postingan akan ditambahkan via JS -->
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="text-center text-xs text-gray-500 py-4">
+    © 2025 PKBM Celah Cahaya
+  </footer>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
+
+  <!-- Script Forum -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRjHZHXEtMJs3RY4FWc3m6iBtfp5x24iU",
+      authDomain: "test-440901.firebaseapp.com",
+      projectId: "test-440901",
+      storageBucket: "test-440901.appspot.com",
+      messagingSenderId: "212375238938",
+      appId: "1:212375238938:web:ccf51e450872b9f7d994a3",
+      measurementId: "G-7EQGKS9PHR"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    const forumContainer = document.getElementById("forumContainer");
+    const postForm = document.getElementById("postForm");
+    const postContent = document.getElementById("postContent");
+
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      // Submit postingan
+      postForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const content = postContent.value.trim();
+        if (!content) return;
+
+        const userDoc = await db.collection("users").doc(user.uid).get();
+        const nama = userDoc.exists ? userDoc.data().nama : "Anonim";
+
+        await db.collection("forum").add({
+          uid: user.uid,
+          nama: nama,
+          isi: content,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        postContent.value = "";
+      });
+
+      // Load postingan real-time
+      db.collection("forum").orderBy("timestamp", "desc").onSnapshot(snapshot => {
+        forumContainer.innerHTML = "";
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const waktu = data.timestamp?.toDate().toLocaleString("id-ID") || "-";
+
+          const postDiv = document.createElement("div");
+          postDiv.className = "bg-gray-100 p-3 rounded shadow";
+
+          postDiv.innerHTML = `
+            <div class="text-sm text-gray-800 font-semibold">${data.nama}</div>
+            <div class="text-gray-700 mt-1 whitespace-pre-line">${data.isi}</div>
+            <div class="text-xs text-gray-400 mt-2">${waktu}</div>
+          `;
+          forumContainer.appendChild(postDiv);
+        });
+      });
+    });
+  </script>
+</body>
+</html>
